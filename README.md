@@ -62,3 +62,12 @@ DISCLAIMER: This information and all assets are provided with no official suppor
 If you want to play around with it, feel free, but it's at your own risk. If your scripts cause data loss or operational issues in corporate environments, that's on you.
 
 If you'd like to discuss this topic, please DM [@paulsbruce](https://twitter.com/paulsbruce)
+
+## Future Work
+
+TOPIC: hub-specific spin-up arguments for mode/host/port so that RemoteWebDriver scripts don't require any changes
+TOPIC: integration into a Selenoid farm; add jar to classpath of hub and to -proxy option of node Docker image
+TOPIC: add node capabilities matcher so that a variety of nodes can be run on the same grid
+TOPIC: expose key metrics using [OpenTelemetry](https://opentelemetry.io) protocol; ingestion by Neotys OTel collector
+TOPIC: deeper injection/extraction of Chrome and Firefox specific Profiler data (function-level performance)
+TOPIC: more reference examples for Java, C#, Python, Ruby, etc.
