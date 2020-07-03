@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "6.0.0"
+}
+
+group 'com.neotys.selenium.server'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://maven.neotys.com/content/repositories/releases/'
+    }
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-server
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-server', version: '3.141.59'
+    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    // https://mvnrepository.com/artifact/com.neotys.rest/neotys-rest-api-dataexchange-client
+    compile group: 'com.neotys.rest', name: 'neotys-rest-api-dataexchange-client-olingo', version: '1.0.4'
+    compile group: 'com.neotys.rest', name: 'neotys-rest-api-design-client-olingo', version: '1.2.1'
+
+    //compile group: 'org.springframework', name: 'spring-websocket', version: '5.2.2.RELEASE'
+    //compile group: 'org.springframework', name: 'spring-messaging', version: '5.2.2.RELEASE'
+    compile group: 'com.neovisionaries', name: 'nv-websocket-client', version: '2.9'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+jar {
+    manifest {
+        attributes('Main-Class': 'com.neotys.selenium.server.Main')
+    }
+}

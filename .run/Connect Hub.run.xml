@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Connect Hub" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/build/libs/neotys-selenium-server-1.0-SNAPSHOT-all.jar" />
+    <option name="PROGRAM_PARAMETERS" value="-role hub -debug" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="14" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks="shadowJar" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>
