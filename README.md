@@ -40,6 +40,8 @@ C) Run WebDriver scripts against this hub with additional capabilities specified
 
 You can use/adapt NeoLoad [examples in this repo](https://github.com/paulsbruce/NeoLoadSeleniumExamples.git), or create your own with WebDriver and layer in a few minimum-viable additional capabilities that help this version of the Grid know which mode (EndUserExperience or Design) you wish to run the test under.
 
+Specifically, [Mocha](https://github.com/paulsbruce/NeoLoadSeleniumExamples/tree/master/custom-resources/selenium/tests/mocha) and [Protractor](https://github.com/paulsbruce/NeoLoadSeleniumExamples/tree/master/custom-resources/selenium/tests/protractor) based examples are provided in the above repo.
+
 ## Additional Capabilities in WebDriver
 
 The standard way to specify implementation-specific details in the WebDriver protocol is to use custom capabilities, such as:
