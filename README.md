@@ -36,6 +36,16 @@ java -jar neotys-selenium-server-[version]-all.jar -role node -hub http://localh
 ```
 C) Run WebDriver scripts against this hub with additional capabilities specified.
 
+### Running with Docker Compose
+
+You can also use Docker Compose to run an example of this grid. However, this specifically requires a few key configuration points:
+
+1. Run your script using --headless mode (see example test suite for Mocha and Protractor setup) otherwise you'll see an error when trying to run your scripts ['Cannot assign requested address (99)'](https://github.com/RobCherry/docker-chromedriver/issues/15#issuecomment-426367228). Headless is required because this Docker-based grid uses a container-based version of the official Chrome Selenium node image which does not contain a Window Manager on purpose.
+
+2. Override the neoload:host IP address to be the NIC IPv4 address of your host, so that the containerized hub can interact with NeoLoad APIs on the host. In the below examples, the test suites have been written to accept command line arguments 'neoloadHost' to marshal the provided value into a custom capabilities entry for this purpose.
+
+3. Docker dependencies assume that you've built the jar inside this repo, but you can simply download a released/compiled version of the jar from [this repository's release assets](https://github.com/paulsbruce/neotys-selenium-server/releases/).
+
 ## Examples
 
 You can use/adapt NeoLoad [examples in this repo](https://github.com/paulsbruce/NeoLoadSeleniumExamples.git), or create your own with WebDriver and layer in a few minimum-viable additional capabilities that help this version of the Grid know which mode (EndUserExperience or Design) you wish to run the test under.

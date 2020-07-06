@@ -1,0 +1,8 @@
+FROM selenium/node-chrome-debug:latest
+MAINTAINER Paul Bruce <me@paulsbruce.io>
+RUN sudo apt-get update -y && sudo apt-get install -y chromium-chromedriver && \
+    sudo rm -rf /var/lib/apt/lists/*
+USER root
+RUN mkdir /jars
+COPY ./build/libs/neotys-selenium-server-*-all.jar /jars/
+CMD [""]

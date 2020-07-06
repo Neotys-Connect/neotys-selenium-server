@@ -720,7 +720,7 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
     }
 
     private Map<String,Object> filterEventsByTypes(Map<String,Object> source, Function<String,Boolean> fMatch) {
-        HashMap<String,Object> hm = new HashMap<>() {
+        HashMap<String,Object> hm = new HashMap<String, Object>() {
             {
                 source.entrySet().stream().filter(e -> {
                             String s = (String)e.getKey().split(splitChar)[0];
