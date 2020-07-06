@@ -72,7 +72,7 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
                 Map<String, Object> proxy = new HashMap<>();
                 proxy.put("proxyType", "manual");
                 proxy.put("httpProxy", String.format("%s:%s", mode.getHost(), mode.getRecorderPort()));
-                proxy.put("noProxy", "127.0.0.1,localhost");
+                //proxy.put("noProxy", "127.0.0.1,localhost");
                 requestedCapability.put("proxy", proxy);
             } else {
                 log.severe("Could not start the NeoLoad design session. Is NeoLoad running with a project open and not in recording mode already?");
@@ -373,7 +373,7 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
 
     @Override
     public void afterSession(TestSession session) {
-        /*session.put(SessionIsFinalizingKey,true);
+        session.put(SessionIsFinalizingKey,true);
 
         ModeHelper mode = getMode(session);
         if(mode.isOnMode()) {
@@ -385,7 +385,7 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
             if (mode.isDesign())
                 finalizeDesignSession(session);
 
-        }*/
+        }
 
         super.afterSession(session);
     }
