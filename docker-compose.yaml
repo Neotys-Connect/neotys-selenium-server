@@ -4,7 +4,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    entrypoint: ["java", "-jar", "/jars/neotys-selenium-server-0.1.0-all.jar", "-role", "hub", "-debug"]
+    entrypoint: ["java", "-jar", "/jars/neotys-selenium-server-0.2.0-all.jar", "-role", "hub", "-debug"]
     ports:
     - 4444:4444
     container_name: neotys-selenium-hub
@@ -16,4 +16,4 @@ services:
       dockerfile: Dockerfile-chrome
     links:
     - neotys-selenium-hub
-    entrypoint: ["java", "-jar", "/jars/neotys-selenium-server-0.1.0-all.jar", "-role", "node", "-hub", "http://neotys-selenium-hub:4444", "-proxy", "com.neotys.selenium.server.NeoLoadRemoteProxy"]
+    entrypoint: ["java", "-jar", "/jars/neotys-selenium-server-0.2.0-all.jar", "-role", "node", "-hub", "http://neotys-selenium-hub:4444", "-proxy", "com.neotys.selenium.server.NeoLoadRemoteProxy"]
