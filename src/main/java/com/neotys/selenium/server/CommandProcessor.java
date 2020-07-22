@@ -8,7 +8,6 @@ import net.minidev.json.JSONArray;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.internal.TestSlot;
 import org.openqa.grid.web.Hub;
-import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.http.HttpClient;
 import org.openqa.selenium.remote.http.HttpMethod;
 import org.openqa.selenium.remote.http.HttpRequest;
@@ -307,7 +306,7 @@ public class CommandProcessor {
         com.neotys.rest.dataexchange.model.Status status = sb.build();
         for(Map.Entry me : all.entrySet()) {
             EntryBuilder eb = new EntryBuilder(
-                    Utils.merge(basePath,Utils.merge(
+                    ListUtils.merge(basePath, ListUtils.merge(
                             Arrays.asList("W3C"),
                             Arrays.asList(((String)me.getKey()).split(splitChar))
                     )), System.currentTimeMillis());

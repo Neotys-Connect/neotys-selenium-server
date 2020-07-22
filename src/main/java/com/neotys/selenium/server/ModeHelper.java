@@ -120,10 +120,15 @@ public class ModeHelper {
                 return DataExchangeAPIClientFactory.newClient(url,cb.build());
             } catch(Exception ex) {
                 this.lastException = ex;
-                if(ex.getMessage().toUpperCase().contains("NL-DATAEXCHANGE-NO-TEST-RUNNING")) {
-                    log.severe("No NeoLoad Test is running");
+                if(ex == null) {
+                    log.severe("Error, empty exception when create a NeoLoad Data Exchange API client.");
                 } else {
-                    log.severe("Could not create a NeoLoad Data Exchange API client:" + ex.toString());
+                    log.severe("createEUE[ERROR]: " + ex.toString());
+                    if (ex.getMessage() != null && ex.getMessage().toUpperCase().contains("NL-DATAEXCHANGE-NO-TEST-RUNNING")) {
+                        log.severe("No NeoLoad Test is running");
+                    } else {
+                        log.severe("Could not create a NeoLoad Data Exchange API client:" + ex.toString());
+                    }
                 }
             }
         }

@@ -321,7 +321,7 @@ public class NeoLoadSession {
                     long endTime = System.currentTimeMillis();
                     long diff = endTime - startTime;
                     final EntryBuilder eb = new EntryBuilder(
-                            Utils.merge(basePath,Arrays.asList("Timer")), System.currentTimeMillis());
+                            ListUtils.merge(basePath,Arrays.asList("Timer")), System.currentTimeMillis());
 
                     eb.unit("ms");
                     eb.value((double) diff);
