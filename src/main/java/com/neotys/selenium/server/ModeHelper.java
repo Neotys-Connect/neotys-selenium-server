@@ -39,6 +39,10 @@ public class ModeHelper {
     public static String HostCapsDefault = "localhost";
     public static int PortCapsDefault = 7400;
 
+    public static String DefaultLocation = "UnspecifiedLocation";
+    public static String DefaultPlatform = "UnspecifiedPlatform";
+    public static String DefaultSoftware = "UnspecifiedSoftware";
+
     private static final Logger log = Logger.getLogger(ModeHelper.class.getName());
     private List<String> desiredW3CEventTypes = null;
 
@@ -83,7 +87,7 @@ public class ModeHelper {
         ret.host = caps.containsKey(HostCapsKey) ? (String) caps.get(HostCapsKey) : HostCapsDefault;
         ret.port = caps.containsKey(PortCapsKey) ? Integer.parseInt((String) caps.get(PortCapsKey)) : PortCapsDefault;
         ret.debug = LogUtils.isNeoLoadDebug(caps);
-        ret.location = caps.containsKey(LocationCapsKey) ? (String) caps.get(LocationCapsKey) : null;
+        ret.location = caps.containsKey(LocationCapsKey) ? (String) caps.get(LocationCapsKey) : DefaultLocation;
         ret.desiredW3CEventTypes = getW3CDesiredEventTypesFromCaps(caps);
         String browserName = caps.get("browserName") != null ? caps.get("browserName").toString() : null;
         ret._isFF = "firefox".equalsIgnoreCase(browserName);
@@ -120,25 +124,18 @@ public class ModeHelper {
                 System.setProperty("sun.net.client.defaultReadTimeout", "15000");
                 System.setProperty("sun.net.client.defaultConnectTimeout", "15000");
 
-                log.fine("createEUE[beforeHTML]");
-                String html = getHTML(url);
-                log.fine("createEUE[afterHTML]: " + html.length());
+                //log.fine("createEUE[beforeHTML]");
+                //String html = getHTML(url);
+                //log.fine("createEUE[afterHTML]: " + html.length());
 
                 log.fine("createEUE[2]");
                 ContextBuilder cb = fContext != null ? fContext.get() : null;
                 log.fine("createEUE[3]");
                 if(cb == null) {
-                    cb = new ContextBuilder();
                     log.fine("createEUE[4]");
                     Map<String,Object> caps = session.getSlot().getCapabilities();
                     log.fine("createEUE[5]");
-                    String platform = (String)caps.get("platformName");
-                    if(platform == null) platform = (String)caps.get("platform");
-                    if(platform != null) cb = cb.os(platform);
-                    if(this.getLocation() != null) cb = cb.location(this.getLocation());
-                    String browser = (String)caps.get("browserName");
-                    if(browser == null) browser = (String)caps.get("browser");
-                    if(browser != null) cb = cb.software(browser);
+                    cb = this.createEUEContext(caps);
                     log.fine("createEUE[6]");
                 }
                 log.fine("createEUE[7]");
@@ -221,5 +218,28 @@ public class ModeHelper {
         }
         rd.close();
         return result.toString();
+    }
+
+    public ContextBuilder createEUEContext(Map<String, Object> caps) {
+        ContextBuilder cb = new ContextBuilder();
+
+        String platform = (String)caps.get("platformName");
+        if(platform == null) platform = (String)caps.get("platform");
+        if(platform == null) platform = DefaultPlatform;
+        log.fine("createEUEContext[platform]: " + platform);
+        cb = cb.os(platform);
+
+        String location = this.getLocation();
+        if(location == null) location = DefaultLocation;
+        log.fine("createEUEContext[location]: " + location);
+        cb = cb.location(location);
+
+        String browser = (String)caps.get("browserName");
+        if(browser == null) browser = (String)caps.get("browser");
+        if(browser == null) browser = DefaultSoftware;
+        log.fine("createEUEContext[browser]: " + browser);
+        cb = cb.software(browser);
+
+        return cb;
     }
 }

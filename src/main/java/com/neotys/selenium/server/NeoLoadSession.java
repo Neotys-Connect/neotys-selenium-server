@@ -335,11 +335,9 @@ public class NeoLoadSession {
 
                     try {
                         DataExchangeAPIClient cli = mode.createEUE(session, () -> {
-                            ContextBuilder cb = new ContextBuilder();
                             Map<String,Object> caps = session.getSlot().getCapabilities();
-                            cb.os((String)caps.get("platformName"))
-                                    .software((String)caps.get("browserName"))
-                                    .location(mode.getLocation())
+                            ContextBuilder cb = mode.createEUEContext(caps);
+                            cb = cb
                                     .script(getChosenScriptName())
                                     .instanceId("Script-" + System.currentTimeMillis());
                             return cb;
