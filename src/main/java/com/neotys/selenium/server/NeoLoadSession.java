@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,8 +42,12 @@ public class NeoLoadSession {
 
     private TestSession _session = null;
 
-    private NeoLoadSession(TestSession session) {
+    private NeoLoadSession(TestSession session, Level inheritedLogLevel) {
         this._session = session;
+        LogUtils.setLoggerLevel(log, session.getRequestedCapabilities(), inheritedLogLevel);
+        log.info("NeoLoadSession created");
+        log.fine("NeoLoadSession constructed");
+
         session.put("NeoLoadSession", this);
     }
     public static NeoLoadSession get(TestSession session) {
@@ -63,14 +68,14 @@ public class NeoLoadSession {
         return this._sessionCreationException != null;
     }
 
-    public static NeoLoadSession initializeSession(TestSession session) {
-        NeoLoadSession ret = new NeoLoadSession(session);
+    public static NeoLoadSession initializeSession(TestSession session, Level inheritedLogLevel) {
+        NeoLoadSession ret = new NeoLoadSession(session, inheritedLogLevel);
         ModeHelper mode = ret.setMode(
-                ModeHelper.fromCapabilities(session.getRequestedCapabilities())
+                ModeHelper.fromCapabilities(session.getRequestedCapabilities(), inheritedLogLevel)
         ).getMode();
 
         if(mode.isOnMode()) {
-            log.fine("NeoLoad beforeSession: " + mode.getMode());
+            log.fine("NeoLoad initializeSession: " + mode.getMode());
             log.fine(String.format("Configured to use %s:%s", mode.getHost(), mode.getPort()));
             ret._transactionIsAuto = false;
             ret._cliIsWorking = false;
@@ -91,6 +96,8 @@ public class NeoLoadSession {
                     log.severe("Cannot connect to NeoLoad Design API. Killing session.");
                 }
             }
+        } else {
+            log.fine("No NeoLoad mode specified.");
         }
         return ret;
     }
@@ -103,7 +110,7 @@ public class NeoLoadSession {
 
     public boolean checkRaiseLastException(Consumer<Exception> fWhenException) {
         TestSession session = getSession();
-        ModeHelper mode = ModeHelper.fromCapabilities(session.getRequestedCapabilities());
+        ModeHelper mode = ModeHelper.fromCapabilities(session.getRequestedCapabilities(), log.getLevel());
         if(this._sessionCreationException != null) {
             if(fWhenException != null)
                 fWhenException.accept(this._sessionCreationException);
@@ -169,7 +176,7 @@ public class NeoLoadSession {
 
                     log.fine("beforeCommand[content]: " + cmd.toString());
 
-                    CommandProcessor cp = CommandProcessor.get(this);
+                    CommandProcessor cp = CommandProcessor.get(this, log.getLevel());
 
                     switch (cmd.getCommand()) {
                         case url:
@@ -306,7 +313,7 @@ public class NeoLoadSession {
     public void stopTransaction() {
         TestSession session = getSession();
         String transactionName = (String)session.get(TransactionCookieName);
-        CommandProcessor cp = CommandProcessor.get(this);
+        CommandProcessor cp = CommandProcessor.get(this, log.getLevel());
         if(transactionName != null) {
             ModeHelper mode = getMode();
             if(isCLIWorking()) {

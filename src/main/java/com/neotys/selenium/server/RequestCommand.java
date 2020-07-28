@@ -46,6 +46,7 @@ public class RequestCommand extends PayloadContainer {
     }
 
     public static RequestCommand create(HttpServletRequest request) throws Exception {
+
         RequestCommand ret = new RequestCommand();
         try {
             String uri = request.getRequestURI();

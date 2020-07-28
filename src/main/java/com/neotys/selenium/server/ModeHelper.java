@@ -7,11 +7,18 @@ import com.neotys.rest.design.client.DesignAPIClient;
 import com.neotys.rest.design.client.DesignAPIClientFactory;
 import org.openqa.grid.internal.TestSession;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -69,12 +76,13 @@ public class ModeHelper {
         }
     }
 
-    public static ModeHelper fromCapabilities(Map<String, Object> caps) {
+    public static ModeHelper fromCapabilities(Map<String, Object> caps, Level logLevel) {
         ModeHelper ret = new ModeHelper();
+        LogUtils.setLoggerLevel(log, caps, logLevel);
         ret.mode = getMode(caps.containsKey(ModeCapsKey) ? (String) caps.get(ModeCapsKey) : MODE_NONE);
         ret.host = caps.containsKey(HostCapsKey) ? (String) caps.get(HostCapsKey) : HostCapsDefault;
         ret.port = caps.containsKey(PortCapsKey) ? Integer.parseInt((String) caps.get(PortCapsKey)) : PortCapsDefault;
-        ret.debug = caps.containsKey(DebugCapsKey) ? (boolean) caps.get(DebugCapsKey) : false;
+        ret.debug = LogUtils.isNeoLoadDebug(caps);
         ret.location = caps.containsKey(LocationCapsKey) ? (String) caps.get(LocationCapsKey) : null;
         ret.desiredW3CEventTypes = getW3CDesiredEventTypesFromCaps(caps);
         String browserName = caps.get("browserName") != null ? caps.get("browserName").toString() : null;
@@ -105,18 +113,35 @@ public class ModeHelper {
 
     public DataExchangeAPIClient createEUE(TestSession session, Supplier<ContextBuilder> fContext) {
         if(isEUE()) {
+            log.fine("createEUE[0]");
             String url = String.format("http://%s:%s/DataExchange/v1/Service.svc/",this.host,this.port);
+            log.fine("createEUE[1]: " + url);
             try {
-                System.setProperty("sun.net.client.defaultReadTimeout", "5000");
-                System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
+                System.setProperty("sun.net.client.defaultReadTimeout", "15000");
+                System.setProperty("sun.net.client.defaultConnectTimeout", "15000");
+
+                log.fine("createEUE[beforeHTML]");
+                String html = getHTML(url);
+                log.fine("createEUE[afterHTML]: " + html.length());
+
+                log.fine("createEUE[2]");
                 ContextBuilder cb = fContext != null ? fContext.get() : null;
+                log.fine("createEUE[3]");
                 if(cb == null) {
                     cb = new ContextBuilder();
+                    log.fine("createEUE[4]");
                     Map<String,Object> caps = session.getSlot().getCapabilities();
-                    cb.os((String)caps.get("platformName"))
-                            .location(this.getLocation())
-                            .software((String)caps.get("browserName"));
+                    log.fine("createEUE[5]");
+                    String platform = (String)caps.get("platformName");
+                    if(platform == null) platform = (String)caps.get("platform");
+                    if(platform != null) cb = cb.os(platform);
+                    if(this.getLocation() != null) cb = cb.location(this.getLocation());
+                    String browser = (String)caps.get("browserName");
+                    if(browser == null) browser = (String)caps.get("browser");
+                    if(browser != null) cb = cb.software(browser);
+                    log.fine("createEUE[6]");
                 }
+                log.fine("createEUE[7]");
                 return DataExchangeAPIClientFactory.newClient(url,cb.build());
             } catch(Exception ex) {
                 this.lastException = ex;
@@ -127,7 +152,10 @@ public class ModeHelper {
                     if (ex.getMessage() != null && ex.getMessage().toUpperCase().contains("NL-DATAEXCHANGE-NO-TEST-RUNNING")) {
                         log.severe("No NeoLoad Test is running");
                     } else {
-                        log.severe("Could not create a NeoLoad Data Exchange API client:" + ex.toString());
+                        StringWriter sw = new StringWriter();
+                        ex.printStackTrace(new PrintWriter(sw));
+                        String exceptionAsString = sw.toString();
+                        log.severe("Could not create a NeoLoad Data Exchange API client:" + exceptionAsString);
                     }
                 }
             }
@@ -178,5 +206,20 @@ public class ModeHelper {
 
     public List<String> getDesiredW3CEventTypes() {
         return this.desiredW3CEventTypes==null ? Arrays.asList(new String[0]) : this.desiredW3CEventTypes;
+    }
+
+
+    public static String getHTML(String urlToRead) throws Exception {
+        StringBuilder result = new StringBuilder();
+        URL url = new URL(urlToRead);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String line;
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        rd.close();
+        return result.toString();
     }
 }

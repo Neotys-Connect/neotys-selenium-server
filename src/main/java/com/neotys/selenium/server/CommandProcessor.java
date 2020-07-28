@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,15 +32,16 @@ public class CommandProcessor {
 
     private final NeoLoadSession _session;
 
-    private CommandProcessor(NeoLoadSession session) {
+    private CommandProcessor(NeoLoadSession session, Level inheritedLogLevel) {
         this._session = session;
+        LogUtils.setLoggerLevel(log, session.getSession().getRequestedCapabilities(), inheritedLogLevel);
     }
 
-    public static CommandProcessor get(NeoLoadSession neoLoadSession) {
+    public static CommandProcessor get(NeoLoadSession neoLoadSession, Level inheritedLogLevel) {
         TestSession session = neoLoadSession.getSession();
         Object prior = session.get("CommandProcessor");
         if(!(prior != null && prior instanceof CommandProcessor))
-            session.put("CommandProcessor", new CommandProcessor(neoLoadSession));
+            session.put("CommandProcessor", new CommandProcessor(neoLoadSession,inheritedLogLevel));
         return (CommandProcessor)session.get("CommandProcessor");
     }
 

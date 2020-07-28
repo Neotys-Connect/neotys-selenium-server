@@ -9,6 +9,7 @@ import org.openqa.grid.internal.TestSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /*
@@ -23,13 +24,18 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
     public NeoLoadRemoteProxy(RegistrationRequest request, GridRegistry registry) {
         super(request, registry);
         this.registry = registry;
-        log.fine("NeoLoad Selenium Node initialized.");
+
+        if(request.getConfiguration().debug)
+            log.setLevel(Level.ALL);
+
+        log.info("NeoLoadRemoteProxy created");
+        log.fine("NeoLoadRemoteProxy constructed");
     }
 
     @Override
     public TestSession getNewSession(Map<String, Object> caps) {
         return super.getNewSession(
-                CapabilitiesHelper.augmentRequestedCapabilitiesWithMode(caps)
+                CapabilitiesHelper.augmentRequestedCapabilitiesWithMode(caps, log.getLevel())
         );
     }
 
@@ -40,7 +46,9 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
         super.beforeSession(session);
         boolean doSuper = true;
 
-        NeoLoadSession ses = NeoLoadSession.initializeSession(session);
+        log.fine("beforeSession[log]: " + log.getLevel().getName());
+
+        NeoLoadSession ses = NeoLoadSession.initializeSession(session, log.getLevel());
         doSuper = !ses.hasInitializationFailure();
 
         if(!doSuper) // proxy class should handle lifecycle operations (like killing a session)
@@ -62,6 +70,7 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
 
     @Override
     public void beforeCommand(TestSession session, HttpServletRequest request, HttpServletResponse response) {
+        log.fine("beforeCommand");
 
         NeoLoadSession.get(session).peekBeforeCommand(request, response);
 
@@ -70,6 +79,8 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
 
     @Override
     public void afterCommand(TestSession session, HttpServletRequest request, HttpServletResponse response) {
+        log.fine("afterCommand");
+
         super.afterCommand(session, request, response);
 
         NeoLoadSession.get(session).peekAfterCommand(request, response);
@@ -77,11 +88,14 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
 
     @Override
     public void beforeRelease(TestSession session) {
+        log.fine("beforeRelease");
+
         super.beforeRelease(session);
     }
 
     @Override
     public void afterSession(TestSession session) {
+        log.fine("afterSession");
 
         NeoLoadSession.get(session).finalizeSession();
 

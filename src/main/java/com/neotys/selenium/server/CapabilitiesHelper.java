@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,9 +13,11 @@ public class CapabilitiesHelper {
 
     private static final Logger log = Logger.getLogger(CapabilitiesHelper.class.getName());
 
-    public static Map<String, Object> augmentRequestedCapabilitiesWithMode(Map<String, Object> caps) {
+    public static Map<String, Object> augmentRequestedCapabilitiesWithMode(Map<String, Object> caps, Level inheritedLogLevel) {
+        LogUtils.setLoggerLevel(log, caps, inheritedLogLevel);
+
         Map<String, Object> requestedCapability = caps;
-        ModeHelper mode = ModeHelper.fromCapabilities(caps);
+        ModeHelper mode = ModeHelper.fromCapabilities(caps, inheritedLogLevel);
 
         if (mode.isDesign()) {
             if (mode.createDesign() != null) {
