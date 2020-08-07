@@ -65,6 +65,25 @@ capabilities = {
 
 For information that is derived *during* test steps, such as script name and transaction names, the NeoLoad Selenium Grid expects that cookies and/or javascript executes are used to courier context from the script client to the hub. Unfortunately, there is no current standard adopted yet by W3C WebDriver that accomplishes this use case. However, use of cookies and script executes are not passed to the actual browser/client. Also, this functionality is supported by all WebDriver frameworks and client libraries, so is very portable between test suites and harnesses.
 
+## Corporate Proxies
+
+Sadly, they have to exist. If a proxy is required between your hub and the NeoLoad controller, add the following capabilities (like the above):
+```
+capabilities = {
+  ... some other NeoLoad capabilities ...
+
+  'neoload:proxyHost': 'your_proxy_hostname_or_ip_address',
+  'neoload:proxyPort': your_proxy_port_number,
+  'neoload:nonProxyHosts': 'the_hostname_of_your_selenium_hub|the_ip_address_of_your_selenium_hub'  
+}
+```
+The value of 'nonProxyHosts' is important unless you don't mind ALL selenium hub traffic INCLUDING hub-to-nodes request to go through this proxy, but this is usually not the case. Usually, you want direct interactions between hub and nodes.
+
+There are also keys 'neoload:proxyUser' and 'neoload:proxyPassword' if your proxy requires authentication.
+
+Finally, you can try to use 'neoload:useSystemProxies' and set to true if you feel brave enough to rely on the operating system to dictate what proxy information to use (but I personally like to be explicit).
+
+
 ## Obtaining Help
 
 DISCLAIMER: This information and all assets are provided with no official support by Neotys, but rather, is a prototype by the author(s) and constitutes no legal obligation or statement of liability.

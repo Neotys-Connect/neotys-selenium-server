@@ -11,8 +11,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +33,13 @@ public class ModeHelper {
     public static String LocationCapsKey = "neoload:location";
     public static String W3CCaptureEventTypesCapsKey = "neoload:w3cEventTypes";
 
+    public static String UseSystemProxiesKey = "neoload:useSystemProxies";
+    public static String ProxyHostKey = "neoload:proxyHost";
+    public static String ProxyPortKey = "neoload:proxyPort";
+    public static String ProxyUsernameKey = "neoload:proxyUser";
+    public static String ProxyPasswordKey = "neoload:proxyPassword";
+    public static String NonProxyHostsKey = "neoload:nonProxyHosts";
+
     public static String ScriptNameKey = "neoload:script";
 
     public static String HostCapsDefault = "localhost";
@@ -53,6 +59,30 @@ public class ModeHelper {
     private String mode;
     private boolean debug = false;
     private String location;
+
+    private boolean useSystemProxies = false;
+    private String proxyHost = null;
+    private int proxyPort = 0;
+    private String proxyUsername = null;
+    private String proxyPassword = null;
+    private String nonProxyHosts = null;
+    public Proxy getHttpProxy() {
+        if(proxyHost == null) return null;
+
+        Proxy p = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost,proxyPort));
+        if(proxyUsername != null) {
+            Authenticator auth = new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray());
+                }
+            };
+            // TODO: Update NeotysAPIClientOlingo.initializeConnection to specify at a per connection level
+            Authenticator.setDefault(auth);
+        }
+        return p;
+    }
+    public String getNonProxyHosts() { return nonProxyHosts; }
 
     public String getMode() { return this.mode; }
     public String getHost() { return this.host; }
@@ -80,6 +110,8 @@ public class ModeHelper {
         }
     }
 
+    public Logger getLogger() { return log; }
+
     public static ModeHelper fromCapabilities(Map<String, Object> caps, Level logLevel) {
         ModeHelper ret = new ModeHelper();
         LogUtils.setLoggerLevel(log, caps, logLevel);
@@ -92,6 +124,14 @@ public class ModeHelper {
         String browserName = caps.get("browserName") != null ? caps.get("browserName").toString() : null;
         ret._isFF = "firefox".equalsIgnoreCase(browserName);
         ret._isCh = "chrome".equalsIgnoreCase(browserName);
+
+        ret.useSystemProxies = caps.containsKey(UseSystemProxiesKey) ? String.format("%s",caps.get(UseSystemProxiesKey)).toLowerCase().contains("true") : false;
+        ret.proxyHost = caps.containsKey(ProxyHostKey) ? (String) caps.get(ProxyHostKey) : null;
+        ret.proxyPort = caps.containsKey(ProxyPortKey) ? Integer.parseInt(((Long)caps.get(ProxyPortKey)).toString()) : 0;
+        ret.proxyUsername = caps.containsKey(ProxyUsernameKey) ? (String) caps.get(ProxyUsernameKey) : null;
+        ret.proxyPassword = caps.containsKey(ProxyPasswordKey) ? (String) caps.get(ProxyPasswordKey) : null;
+        ret.nonProxyHosts = caps.containsKey(NonProxyHostsKey) ? (String) caps.get(NonProxyHostsKey) : null;
+
         return ret;
     }
 
@@ -120,9 +160,33 @@ public class ModeHelper {
             log.fine("createEUE[0]");
             String url = String.format("http://%s:%s/DataExchange/v1/Service.svc/",this.host,this.port);
             log.fine("createEUE[1]: " + url);
+
             try {
                 System.setProperty("sun.net.client.defaultReadTimeout", "15000");
                 System.setProperty("sun.net.client.defaultConnectTimeout", "15000");
+
+                System.setProperty("java.net.useSystemProxies", new Boolean(useSystemProxies).toString());
+                if(proxyHost != null) {
+                    System.setProperty("http.proxyHost", proxyHost);
+                    System.setProperty("http.proxyPort", new Integer(proxyPort).toString());
+                    if(proxyUsername != null) System.setProperty("http.proxyUser", proxyUsername);
+                    if(proxyPassword != null) System.setProperty("http.proxyPassword", proxyPassword);
+                    if(nonProxyHosts != null) System.setProperty("http.nonProxyHosts", nonProxyHosts);
+
+                    // TODO: Update NeotysAPIClientOlingo.initializeConnection to specify at a per connection level
+                    HttpProxySelector ps = new HttpProxySelector(ProxySelector.getDefault(), this);
+                    ProxySelector.setDefault(ps);
+                } else {
+                    System.clearProperty("http.proxyHost");
+                    System.clearProperty("http.proxyPort");
+                    System.clearProperty("http.proxyUser");
+                    System.clearProperty("http.proxyPassword");
+                    System.clearProperty("http.nonProxyHosts");
+
+                    // TODO: Update NeotysAPIClientOlingo.initializeConnection to specify at a per connection level
+                    ProxySelector.setDefault(ProxySelector.getDefault());
+
+                }
 
                 //log.fine("createEUE[beforeHTML]");
                 //String html = getHTML(url);

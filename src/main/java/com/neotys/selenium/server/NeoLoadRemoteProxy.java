@@ -27,6 +27,8 @@ public class NeoLoadRemoteProxy extends org.openqa.grid.selenium.proxy.DefaultRe
 
         if(request.getConfiguration().debug)
             log.setLevel(Level.ALL);
+        else
+            log.setLevel(Level.WARNING);
 
         log.info("NeoLoadRemoteProxy created");
         log.fine("NeoLoadRemoteProxy constructed");
