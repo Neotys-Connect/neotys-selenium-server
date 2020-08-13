@@ -29,7 +29,8 @@ public class NeoLoadSession {
     private static final Logger log = Logger.getLogger(NeoLoadSession.class.getName());
 
     private boolean _cliIsWorking = false;
-    public static String ScriptNameKey = "ScriptName";
+    public static String ScriptNameKey = "neoload:script";
+    public static String ScriptVariableKey = "nl_script";
     private String _chosenScriptName = null;
     private static String DefaultScriptName = "UserPath";
     public static String TransactionCookieName = "nl_transaction";
@@ -128,15 +129,19 @@ public class NeoLoadSession {
     private String initScriptName(RequestCommand cmd) {
         TestSession session = getSession();
         String scriptName = (String) getSession().getRequestedCapabilities().get(ModeHelper.ScriptNameKey);
-        //{"script":"return ((title) => { window.nl_script=title; }).apply(null, arguments)","args":["Home Page should have the right title"]}
         if (RequestCommand.CommandEnum.execute.equals(cmd.getCommand())) {
-            if ((cmd.getValueOf("$.script", java.util.Optional.of("")) + "").contains("nl_script")) {
+            if ((cmd.getValueOf("$.script", java.util.Optional.of("")) + "").contains(ScriptVariableKey)) {
                 String s = cmd.getContentText();
                 Pattern p = Pattern.compile("\"args\":\\[\"(.*?)\"");
                 Matcher m = p.matcher(s);
                 if (m.find()) {
                     String title = m.group(1);
                     scriptName = title;
+                }
+                if(scriptName == null) {
+                    String title = parseJavascriptSetterValue(cmd, ScriptVariableKey);
+                    if("null".compareTo(title)!=0)
+                        scriptName = title;
                 }
             }
         }
@@ -158,12 +163,26 @@ public class NeoLoadSession {
             try {
                 RequestCommand cmd = RequestCommand.create(request);
 
+                log.fine("beforeCommand[content]: " + cmd.toString());
+
+                CommandProcessor cp = CommandProcessor.get(this, log.getLevel());
+
                 if(!CommandProcessor.isBackgroundJavascriptExecutor(cmd)) {
 
                     if (isCLIWorking()) {
                         switch (cmd.getCommand()) {
                             case create_session:
                                 break;
+                            case execute:
+                                if(cmd.getContentText().contains("window.nl_transaction")) {
+                                    String txnName = parseJavascriptSetterValue(cmd,"window.nl_transaction");
+                                    if(txnName != null) {
+                                        if("null".compareTo(txnName)!=0)
+                                            startTransaction(txnName,false);
+                                        else
+                                            stopTransaction();
+                                    }
+                                }
                             default:
                                 String scriptName = getChosenScriptName();
                                 if(scriptName == null)
@@ -173,10 +192,6 @@ public class NeoLoadSession {
                                     initDesignSession(scriptName);
                         }
                     }
-
-                    log.fine("beforeCommand[content]: " + cmd.toString());
-
-                    CommandProcessor cp = CommandProcessor.get(this, log.getLevel());
 
                     switch (cmd.getCommand()) {
                         case url:
@@ -194,6 +209,16 @@ public class NeoLoadSession {
                 log.throwing(log.getClass().getCanonicalName(), "beforeCommand", ex);
             }
         }
+    }
+
+    private String parseJavascriptSetterValue(RequestCommand cmd, String jsVariable) {
+        Pattern p = Pattern.compile("(?:"+jsVariable+"[\\s]*=[\\s]*['\"]?)(.*?)['\"]?(?:[;]*)(?:$|\\n)");
+        Matcher m = p.matcher(cmd.getValueOf("$.script"));
+        if (m.find()) {
+            String title = m.group(1);
+            return title;
+        }
+        return null;
     }
 
     public void peekAfterCommand(HttpServletRequest request, HttpServletResponse response) {

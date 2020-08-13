@@ -148,6 +148,12 @@ public class CommandProcessor {
         return null;
     }
 
+    public String getCurrentTransactionNameFromWindow() {
+        PayloadContainer pc = executeJavascript("return window.nl_transaction");
+        Object oTimers = JsonPath.read(pc.json, "$.value");
+        return (oTimers != null ? oTimers.toString() : null);
+    }
+
     private PayloadContainer executeJavascript(String script) {
         TestSession session = this._session.getSession();
         String sessionId = session.getExternalKey().getKey();
